@@ -3,8 +3,7 @@ info:
   title: WASAPhoto API
   description: |-
     This is the API for WASAPhoto homework 1 by 1894389
-  version: 0.1
-tags:
+  version: 0.0.0
 paths:
   /session:
     post:
@@ -42,3 +41,4 @@ paths:
                   # or any other type of identifier
                     type: string
                     example: "abcdef012345"
+# --------------------------------------------------------------
