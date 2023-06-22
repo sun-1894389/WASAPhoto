@@ -1,0 +1,126 @@
+openapi: 3.0.3
+info:
+  title: WASAPhoto API
+  description: |-
+    This is the API for WASAPhoto homework 1 by 1894389
+  version: 0.0.2
+tags:
+  - name: "login"
+    description: Endpoint for logins
+  - name: "search"
+    description: Endpoint for search
+    
+paths:
+  /session:
+    post:
+      tags: ["login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_login"
+        required: true
+      responses:
+        '201':
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/login_return"
+# --------------------------------------------------------------
+  /users:
+     get:
+      tags: ["search"]
+      summary: Finds the profile of an user by his Id
+      description: Gets an user profile
+      operationId: getUserProfile
+      parameters:
+      - name: id
+        in: query
+        description: ID dell'utente che viene cercato
+        schema:
+          type: string
+          pattern: '^.*?$'
+          minLength: 3
+          maxLength: 16
+        example: "Luis64"
+      responses:
+        '200':
+          $ref: "#/components/responses/user_ok"
+      
+      
+# --------------------------------------------------------------
+components:
+  schemas:
+    user_nickname:
+      description: It's a user's nickname
+      type: object
+      properties:
+        nickname:
+          description: Any string between 3-16 characters
+          type: string
+          minLength: 3
+          maxLength: 16
+          pattern: '^.*?$'
+          example: "Johnny"
+      example:
+        nickname: "JohnSun"
+        
+    full_user:
+      description: Contains the *unique identifier and the nickname of a user
+      type: object
+      properties:
+        user_id:
+          $ref: "#/components/schemas/user_nickname/properties/nickname"
+        nickname:
+          $ref: "#/components/schemas/user_nickname/properties/nickname"
+      example:
+        user_id: "John64"
+        nickname: "NeX"
+        
+    users_list:
+      description: List of users found
+      type: object
+      properties:
+        users:
+          description: Array of users with a partial match on the searched nickname
+          type: array
+          minItems: 0
+          maxItems: 10
+          items:
+            $ref: "#/components/schemas/full_user"
+          example:
+            - user_id: jonathan
+              nickname: jojo1
+            - user_id: joseph
+              nickname: jojo2
+            - user_id: jotaro
+              nickname: jojo3
+
+      
+    user_login:
+      description: Identifier sent by user during the login
+      type: object
+      properties:
+        identifier:
+          $ref: "#/components/schemas/user_nickname/properties/nickname"
+    login_return:
+      description: Identifier returned after the login
+      type: object
+      properties:
+        identifier:
+          $ref: "#/components/schemas/user_nickname/properties/nickname"
+  responses:
+    user_ok:
+      description: User found successfully by the id/nick.
+      content:
+        application/json:
+          schema:
+            $ref: "#/components/schemas/users_list"
