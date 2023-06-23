@@ -11,6 +11,12 @@ tags:
     description: Endpoint for search
   - name: "user"
     description: Endpoint that manages users
+  - name: "photo"
+    description: Endpoint that manages photos
+  - name: "comments"
+    description: Endpoint that manages comments
+  - name: "likes"
+    description: Endpoint that manages likes
     
 paths:
   /session:
@@ -66,6 +72,8 @@ paths:
           $ref: "#/components/responses/not_found"
         '500':
           $ref: "#/components/responses/internal_server_error"
+      security:
+        - bearerAuth: []
   
   /users/{id}:
     parameters: 
@@ -89,6 +97,9 @@ paths:
           $ref: "#/components/responses/not_found"
         '500':
           $ref: "#/components/responses/internal_server_error"
+          
+      security:
+        - bearerAuth: []
       
       
       
@@ -361,3 +372,9 @@ components:
       description: This response is associated to the 404 http status (The server cannot find the requested resource.)
     internal_server_error:
       description: This response is associated to the 500 http status (The server has encountered a situation it does not know how to handle.)
+      
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
