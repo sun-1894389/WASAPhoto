@@ -81,7 +81,7 @@ paths:
     get:
       tags: ["user"]
       summary: Retrieves all the info of a profile
-      description: Allows the user to obtain a profile complete info (can't be banned by the profile owner)
+      description: Gets every info of an user's profile
       operationId: getProfile
       
       responses:
@@ -101,7 +101,82 @@ paths:
       security:
         - bearerAuth: []
       
+    put:
+      tags: ["user"]
+      summary: Changes the user's nickname
+      description: Allows the user to change his nickname
+      operationId: setMyUserName
+        
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/user_nickname"
+            example: 
+              nickname: "Jonathan"
+        required: true
+
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '401':
+          $ref: "#/components/responses/unauthorized"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: "#/components/responses/not_found"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+          
+      security:
+        - bearerAuth: [] 
+  
+  /users/{id}/banned_users/{banned_id}:
+    parameters:
+        - $ref: "#/components/parameters/banned_id"
+        - $ref: '#/components/parameters/identifier'
+    put:
+      tags: ["ban"]
+      summary: Bans/block a user
+      description: Once a user is blocked he/she won't be able to see any info from whoever banned him/her(photo,comments,likes,ecc...).
+      operationId: banUser
       
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '401':
+          $ref: "#/components/responses/unauthorized"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: "#/components/responses/not_found"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+          
+      security:
+        - bearerAuth: [] 
+    
+    delete:
+      tags: ["ban"]
+      summary: Unbans/unblocks a user
+      description: By removing the ban,the unbanned user can see every information of the persone that unbanned him/her.
+      operationId: unbanUser
+      
+      responses:
+        '204':
+          $ref: "#/components/responses/no_content"
+        '401':
+          $ref: "#/components/responses/unauthorized"
+        '403':
+          $ref: '#/components/responses/forbidden'
+        '404':
+          $ref: "#/components/responses/not_found"
+        '500':
+          $ref: "#/components/responses/internal_server_error"
+      
+      security:
+        - bearerAuth: [] 
+    
       
 # --------------------------------------------------------------
 components:
@@ -119,6 +194,15 @@ components:
         minLength: 3
         maxLength: 16
         readOnly: true
+    banned_id:
+      name: banned_id
+      in: path
+      description: A banned user identifier.
+      required: true
+      schema:
+        $ref: "#/components/schemas/user_nickname/properties/nickname"
+      example: "PerverseGuy"
+      
   schemas:
     user_nickname:
       description: It's a user's nickname
@@ -208,6 +292,7 @@ components:
                   date: 2022-11-22T13:10:14Z
                   photo_id: 7836
                   owner: "PulpFiction"
+    
     users_list:
       description: List of users found
       type: object
@@ -356,6 +441,9 @@ components:
         application/json:
           schema:
             $ref: "#/components/schemas/full_profile"
+    no_content:
+      description: This response is associated to the 204 http status (There is no content to send for this request)
+      
     partial_content:
       description: This response is associated to the 206 http status (The requested resource has partial info)
       content:
