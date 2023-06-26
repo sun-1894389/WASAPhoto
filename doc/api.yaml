@@ -80,7 +80,7 @@ paths:
           $ref: "#/components/responses/internal_server_error"
       security:
         - bearerAuth: []
-  
+# --------------------------------------------------------------
   /users/{id}:
     parameters: 
         - $ref: "#/components/parameters/identifier"
@@ -106,7 +106,7 @@ paths:
           
       security:
         - bearerAuth: []
-      
+
     put:
       tags: ["user"]
       summary: Changes the user's nickname
@@ -136,7 +136,7 @@ paths:
           
       security:
         - bearerAuth: [] 
-  
+# --------------------------------------------------------------
   /users/{id}/banned_users/{banned_id}:
     parameters:
         - $ref: "#/components/parameters/banned_id"
@@ -182,6 +182,7 @@ paths:
       
       security:
         - bearerAuth: []
+# --------------------------------------------------------------
   /users/{id}/followers/{follower_id}:
     parameters:
         - $ref: "#/components/parameters/follower_id"
@@ -228,6 +229,7 @@ paths:
           
       security:
         - bearerAuth: []
+# --------------------------------------------------------------
   /users/{id}/home:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -252,7 +254,7 @@ paths:
           
       security:
         - bearerAuth: [] 
-  
+# --------------------------------------------------------------
   /users/{id}/photos:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -284,7 +286,7 @@ paths:
           
       security:
         - bearerAuth: []
-  
+# -------------------------------------------------------------- 
   /users/{id}/photos/{photo_id}:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -332,7 +334,7 @@ paths:
           
       security:
         - bearerAuth: [] 
-        
+# --------------------------------------------------------------  
   /users/{id}/photos/{photo_id}/comments:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -366,7 +368,7 @@ paths:
           
       security:
         - bearerAuth: [] 
-  
+# --------------------------------------------------------------
   /users/{id}/photos/{photo_id}/comments/{comment_id}:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -393,7 +395,7 @@ paths:
           
       security:
         - bearerAuth: []
-        
+# --------------------------------------------------------------
   /users/{id}/photos/{photo_id}/likes/{like_id}:
     parameters: 
         - $ref: '#/components/parameters/identifier'
@@ -443,6 +445,7 @@ paths:
         - bearerAuth: [] 
       
 # --------------------------------------------------------------
+
 components:
   parameters:
   
@@ -510,6 +513,8 @@ components:
         $ref: "#/components/schemas/user_nickname/properties/nickname"
       example: "Mami"
       
+# --------------------------------------------------------------
+
   schemas:
     user_nickname:
       description: It's a user's nickname
@@ -633,7 +638,7 @@ components:
           example: 965
       example:
         comment_id: 965
-#||||||||||||||||||||||||||||||||||||||||||||||||||||||||        
+
     comment:
       description: A user's comment containing the text of the comment and the id of who commented
       type: object
@@ -851,9 +856,15 @@ components:
       description: This response is associated to the 404 http status (The server cannot find the requested resource.)
     internal_server_error:
       description: This response is associated to the 500 http status (The server has encountered a situation it does not know how to handle.)
-      
+
+# --------------------------------------------------------------
+
   securitySchemes:
     bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      
       type: http
       scheme: bearer
       bearerFormat: JWT
