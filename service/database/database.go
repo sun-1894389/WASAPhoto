@@ -1,0 +1,186 @@
+package database
+/*
+Package database is the middleware between the app database and the code. All data (de)serialization (save/load) from a
+persistent database are handled here. Database specific logic should never escape this package.
+To use this package, you need to apply migrations to the database if needed/wanted, connect to it (using the database
+data source name from config), and then initialize an instance of AppDatabase from the DB connection.
+For example, this code adds a parameter in `webapi` executable for the database data source name (add it to the
+main.WebAPIConfiguration structure):
+
+	DB struct {
+		Filename string `conf:""`
+	}
+
+This is an example of how to migrate the DB and connect to it:
+
+	// Start Database
+	logger.Println("initializing database support")
+	db, err := sql.Open("sqlite3", "./foo.db")
+	if err != nil {
+		logger.WithError(err).Error("error opening SQLite DB")
+		return fmt.Errorf("opening SQLite: %w", err)
+	}
+	defer func() {
+		logger.Debug("database stopping")
+		_ = db.Close()
+	}()
+
+Then you can initialize the AppDatabase and pass it to the api package.
+*/
+package database
+
+import (
+	"database/sql"
+	"errors"
+	"fmt"
+)
+
+// Errors
+var (
+	ErrPhotoDoesntExist = errors.New("photo doesn't exist")
+	ErrUserBanned       = errors.New("user is banned")
+)
+
+// Constants
+const PhotosPerUserHome = 3
+
+// AppDatabase is the high-level interface for the DB
+type AppDatabase interface {
+	// Creates a new user in the database.
+	CreateUser(user User) error
+
+	// Modifies the nickname of a user in the database.
+	ModifyNickname(user User, nickname Nickname) error
+
+	// Searches all the users that match the given name (both identifier and nickname).
+	SearchUser(searcher User, userToSearch User) ([]CompleteUser, error)
+
+	// Creates a new photo in the database.
+	CreatePhoto(photo Photo) (int64, error)
+
+	// Inserts a like of a user for a specified photo in the database.
+	LikePhoto(photoID PhotoID, user User) error
+
+	// Removes a like of a user for a specified photo from the database.
+	UnlikePhoto(photoID PhotoID, user User) error
+
+	// Adds a comment from a user to a specified photo in the database.
+	CommentPhoto(photoID PhotoID, user User, comment Comment) (int64, error)
+
+	// Deletes a comment from a user from a specified photo in the database.
+	UncommentPhoto(photoID PhotoID, user User, commentID CommentID) error
+
+	// Adds a follower (a) to the user that is being followed (b).
+	FollowUser(a User, b User) error
+
+	// Removes a follower (a) from the user that is being unfollowed (b).
+	UnfollowUser(a User, b User) error
+
+	// Adds a user (b) to the banned list of another (a).
+	BanUser(a User, b User) error
+
+	// Removes a user (b) from the banned list of another (a).
+	UnbanUser(a User, b User) error
+
+	// Gets the user's stream (photos of people who are followed by the user in reversed chronological order).
+	GetStream(user User) ([]Photo, error)
+
+	// Removes a photo from the database. The removal includes likes and comments.
+	RemovePhoto(user User, photoID PhotoID) error
+
+	// Util Methods
+
+	// Gets the followers list for the specified user.
+	GetFollowers(user User) ([]User, error)
+
+	// Gets the following list for the specified user.
+	GetFollowing(user User) ([]User, error)
+
+	// Gets the photos list of user b for the user a.
+	GetPhotosList(a User, b User) ([]Photo, error)
+
+	// Allows the author of a photo to remove a comment from another user on his/her photo.
+	UncommentPhotoAuthor(photoID PhotoID, commentID CommentID) error
+
+	// Gets the nickname of a user.
+	GetNickname(user User) (string, error)
+
+	// Checks if a user (a) is banned by another (b).
+	BannedUserCheck(a User, b User) (bool, error)
+
+	// Checks if a user (a) exists.
+	CheckUser(user User) (bool, error)
+
+	// Checks if a photo (via its id) exists.
+	CheckPhotoExistence(photoID PhotoID) (bool, error)
+
+	// Ping checks whether the database is available or not.
+	Ping() error
+}
+
+type appdbimpl struct {
+	c *sql.DB
+}
+
+// New returns a new instance of AppDatabase based on the SQLite connection `db`.
+// `db` is required - an error will be returned if `db` is `nil`.
+func New(db *sql.DB) (AppDatabase, error) {
+	if db == nil {
+		return nil, errors.New("database is required when building an AppDatabase")
+	}
+
+	// Activate foreign keys for db
+	_, err := db.Exec("PRAGMA foreign_keys = ON")
+	if err != nil {
+		return nil, fmt.Errorf("error setting pragmas: %w", err)
+	}
+
+	// Check if table exists. If not, the database is empty, and we need to create the structure
+	var tableName string
+	err = db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
+	if errors.Is(err, sql.ErrNoRows) {
+		err = createDatabase(db)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure: %w", err)
+		}
+	}
+
+	return &appdbimpl{
+		c: db,
+	}, nil
+}
+
+func (db *appdbimpl) Ping() error {
+	return db.c.Ping()
+}
+
+// createDatabase creates all the necessary SQL tables for the WASAPhoto app.
+func createDatabase(db *sql.DB) error {
+	tables := []string{
+		`CREATE TABLE IF NOT EXISTS users (
+			id_user VARCHAR(16) NOT NULL PRIMARY KEY,
+			nickname VARCHAR(16) NOT NULL
+		);`,
+		`CREATE TABLE IF NOT EXISTS photos (
+			id_photo INTEGER PRIMARY KEY AUTOINCREMENT,
+			id_user VARCHAR(16) NOT NULL,
+			date DATETIME NOT NULL,
+			FOREIGN KEY(id_user) REFERENCES users(id_user) ON DELETE CASCADE
+		);`,
+		`CREATE TABLE IF NOT EXISTS likes (
+			id_photo INTEGER NOT NULL,
+			id_user VARCHAR(16) NOT NULL,
+			PRIMARY KEY (id_photo, id_user),
+			FOREIGN KEY(id_photo) REFERENCES photos(id_photo) ON DELETE CASCADE
+		);`,
+		`CREATE TABLE IF NOT EXISTS comments (
+			id_comment INTEGER PRIMARY KEY AUTOINCREMENT,
+			id_photo INTEGER NOT NULL,
+			id_user VARCHAR(16) NOT NULL,
+			comment VARCHAR(30) NOT NULL,
+			FOREIGN KEY(id_photo) REFERENCES photos(id_photo) ON DELETE CASCADE,
+			FOREIGN KEY(id_user) REFERENCES users(id_user) ON DELETE CASCADE
+		);`,
+		`CREATE TABLE IF NOT EXISTS banned_users (
+			banner VARCHAR(16) NOT NULL,
+			banned
