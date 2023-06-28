@@ -81,7 +81,7 @@ export default {
 
 <style>
 .login {
-    background-image: url("../assets/pictures/BackgroundLogin.png");
+    background-image: url("../assets/images/BackgroundLogin.png");
     height: 100vh;
 }
 

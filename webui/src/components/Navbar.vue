@@ -35,7 +35,7 @@ export default {
   <nav class="navbar navbar-expand-lg bg-light d-flex justify-content-between sticky-top mb-3 my-nav bg-transparent">
       <div class="col-4">
           <a class="navbar-brand ms-2 d-flex" @click="goBackHome">
-              <img class="brand-img" src="../assets/pictures/brand.png">
+              <img class="brand-img" src="../assets/images/brand.png">
               <div>WASAPhoto</div>
           </a>
       </div>
