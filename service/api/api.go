@@ -37,13 +37,13 @@ See the `main.go` file inside the `cmd/webapi` for a full usage example.
 package api
 
 import (
-	"path/filepath"
-	"WASAPhoto-main/service/database"
-
 	"errors"
+	"net/http"
+	"path/filepath"
+	"WASAPhoto-1894389/service/database"
+
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
-	"net/http"
 )
 
 // Photo media folder

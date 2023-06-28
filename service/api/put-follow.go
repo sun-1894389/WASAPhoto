@@ -2,8 +2,8 @@ package api
 
 import (
 	"net/http"
-	"WASAPhoto-main/service/api/reqcontext"
-	"WASAPhoto-main/service/database"
+	"WASAPhoto-1894389/service/api/reqcontext"
+	"WASAPhoto-1894389/service/database"
 
 	"github.com/julienschmidt/httprouter"
 )
