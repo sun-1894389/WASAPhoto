@@ -1,4 +1,4 @@
-ackage api
+package api
 
 import (
 	"net/http"

@@ -38,7 +38,7 @@ import (
 	"WASAPhoto-main/service/globaltime"
 
 	"github.com/ardanlabs/conf"
-	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 

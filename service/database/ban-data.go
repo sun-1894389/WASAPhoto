@@ -1,38 +1,42 @@
 package database
 
-import (
-	"errors"
-	"fmt"
-)
+// Database fuction that allows a user (banner) to ban another one (banned)
+func (db *appdbimpl) BanUser(banner User, banned User) error {
 
-// BanUser bans a user (banned) by another user (banner)
-func (db *appdbimpl) BanUser(bannerUser User, bannedUser User) error {
-	query := "INSERT INTO banned_users (banner, banned) VALUES (?, ?)"
-	_, err := db.c.Exec(query, bannerUser.IdUser, bannedUser.IdUser)
+	_, err := db.c.Exec("INSERT INTO banned_users (banner,banned) VALUES (?, ?)", banner.IdUser, banned.IdUser)
 	if err != nil {
-		return fmt.Errorf("failed to ban user: %w", err)
+		return err
 	}
+
 	return nil
 }
 
-// UnbanUser removes a user (banned) from the banned list of another user (banner)
-func (db *appdbimpl) UnbanUser(bannerUser User, bannedUser User) error {
-	query := "DELETE FROM banned_users WHERE banner = ? AND banned = ?"
-	_, err := db.c.Exec(query, bannerUser.IdUser, bannedUser.IdUser)
+// Database fuction that removes a user (banned) from the banned list of another one (banner)
+func (db *appdbimpl) UnbanUser(banner User, banned User) error {
+
+	_, err := db.c.Exec("DELETE FROM banned_users WHERE (banner = ? AND banned = ?)", banner.IdUser, banned.IdUser)
 	if err != nil {
-		return fmt.Errorf("failed to unban user: %w", err)
+		return err
 	}
+
 	return nil
 }
 
-// BannedUserCheck checks if the requesting user was banned by another user.
-// It returns true if the user is banned, false otherwise.
+// [Util] Database fuction that checks if the requesting user was banned by another 'user'. Returns 'true' if is banned, 'false' otherwise
 func (db *appdbimpl) BannedUserCheck(requestingUser User, targetUser User) (bool, error) {
-	query := "SELECT COUNT(*) FROM banned_users WHERE banned = ? AND banner = ?"
+
 	var cnt int
-	err := db.c.QueryRow(query, requestingUser.IdUser, targetUser.IdUser).Scan(&cnt)
+	err := db.c.QueryRow("SELECT COUNT(*) FROM banned_users WHERE banned = ? AND banner = ?",
+		requestingUser.IdUser, targetUser.IdUser).Scan(&cnt)
+
 	if err != nil {
-		return false, fmt.Errorf("failed to check banned user: %w", err)
+		// Count always returns a row thanks to COUNT(*), so this situation should not happen
+		return true, err
 	}
-	return cnt == 1, nil
+
+	// If the counter is 1 then the user was banned
+	if cnt == 1 {
+		return true, nil
+	}
+	return false, nil
 }
