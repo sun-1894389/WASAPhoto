@@ -34,8 +34,8 @@ import (
 	"os/signal"
 	"syscall"
 	"WASAPhoto-main/service/api"
-	"WASAPhoto-main//service/database"
-	"WASAPhoto-main//service/globaltime"
+	"WASAPhoto-main/service/database"
+	"WASAPhoto-main/service/globaltime"
 
 	"github.com/ardanlabs/conf"
 	"github.com/mattn/go-sqlite3"
