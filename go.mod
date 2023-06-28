@@ -1,4 +1,4 @@
-module WASAPhoto-main
+module WASAPhoto-1894389
 
 go 1.17
 
