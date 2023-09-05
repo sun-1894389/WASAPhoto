@@ -1,10 +1,10 @@
 package api
 
 import (
-	"encoding/json"
-	"net/http"
 	"Wasa-Photo-1894389/service/api/reqcontext"
 	"Wasa-Photo-1894389/service/database"
+	"encoding/json"
+	"net/http"
 
 	"github.com/julienschmidt/httprouter"
 )

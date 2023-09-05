@@ -37,10 +37,10 @@ See the `main.go` file inside the `cmd/webapi` for a full usage example.
 package api
 
 import (
+	"Wasa-Photo-1894389/service/database"
 	"errors"
 	"net/http"
 	"path/filepath"
-	"Wasa-Photo-1894389/service/database"
 
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
