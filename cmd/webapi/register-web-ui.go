@@ -3,11 +3,11 @@
 package main
 
 import (
+	"Wasa-Photo-1894389/webui"
 	"fmt"
 	"io/fs"
 	"net/http"
 	"strings"
-	"Wasa-Photo-1894389/webui"
 )
 
 func registerWebUI(hdl http.Handler) (http.Handler, error) {
