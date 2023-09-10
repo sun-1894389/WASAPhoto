@@ -8,7 +8,7 @@ tags:
   - name: "login"
     description: Endpoint for logins
   - name: "search"
-    description: Endpoint for search
+    description: Endpoint for searching
   - name: "user"
     description: Endpoint that manages users
   - name: "ban"
@@ -20,9 +20,9 @@ tags:
   - name: "likes"
     description: Endpoint that manages likes
   - name: "followers"
-    description: Endpoint that manages likes
+    description: Endpoint that manages followers
   - name: "stream"
-    description: Endpoint that manages stream
+    description: Endpoint that manages the stream
     
 paths:
   /session:
@@ -52,7 +52,7 @@ paths:
   /users:
      get:
       tags: ["search"]
-      summary: Finds the profile of an user by his Id
+      summary: Finds the profile of an user by his Id or nickname
       description: Gets an user profile
       operationId: getUserProfile
       parameters:
