@@ -1,7 +1,7 @@
-# Build using -> 
+# Build using:
 # docker build -t wasaphoto-backend:latest -f Dockerfile.backend .
 #
-# Execute the Dockerfile.backend using ->
+# Execute the Dockerfile.backend using:
 # docker run -it -p 3000:3000 --rm wasaphoto-backend:latest (*)
 # (*) Since we don't care about having persistent data we don't need a volume (-v)
 

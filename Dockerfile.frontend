@@ -1,7 +1,7 @@
-# Build using -> 
+# Build using:
 # docker build -t wasaphoto-frontend:latest -f Dockerfile.frontend .
 #
-# Execute the Dockerfile.frontend using ->
+# Execute the Dockerfile.frontend using:
 # docker run -it -p 8080:80 --rm wasaphoto-frontend:latest
 
 FROM node:lts as frontend_compiler
