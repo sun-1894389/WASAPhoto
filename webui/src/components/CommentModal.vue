@@ -12,7 +12,7 @@ export default {
 			try{
 				// Comment post: /users/:id/photos/:photo_id/comments
 				let response = await this.$axios.post("/users/"+ this.photo_owner +"/photos/"+this.photo_id+"/comments",{
-					user_id: localStorage.getItem('token'),
+					user_id: sessionStorage.getItem('token'),
 					comment: this.commentValue
 				},{
 					headers:{
@@ -23,7 +23,7 @@ export default {
 				this.$emit('addComment',{
 					comment_id: response.data.comment_id, 
 					photo_id: this.photo_id, 
-					user_id: localStorage.getItem('token'), 
+					user_id: sessionStorage.getItem('token'), 
 					comment: this.commentValue}
 				)
 				this.commentValue = ""

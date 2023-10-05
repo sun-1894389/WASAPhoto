@@ -28,9 +28,9 @@ export default {
 
 	
 	created(){
-		if (!localStorage.getItem('notFirstStart')){
-			localStorage.clear()
-			localStorage.setItem('notFirstStart',true)
+		if (!sessionStorage.getItem('notFirstStart')){
+			sessionStorage.clear()
+			sessionStorage.setItem('notFirstStart',true)
 			// console.log("first start")
 		}
 		
@@ -40,7 +40,7 @@ export default {
 	mounted(){
 
 		// console.log("Devo modificare ancora lo stile!")
-		if (!localStorage.getItem('token')){
+		if (!sessionStorage.getItem('token')){
 			this.$router.replace("/login")
 		}else{
 			this.logged = true

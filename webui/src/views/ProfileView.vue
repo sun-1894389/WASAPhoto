@@ -39,7 +39,7 @@ export default {
         
 
 		sameUser(){
-			return this.$route.params.id === localStorage.getItem('token')
+			return this.$route.params.id === sessionStorage.getItem('token')
 		},
 	},
 
@@ -72,6 +72,7 @@ export default {
                 */
                 this.photos.unshift(response.data)
                 this.postCnt += 1
+            location.reload();
             };
         },
 
@@ -79,11 +80,11 @@ export default {
             try{
                 if (this.followStatus){ 
                     // Delete like: /users/:id/followers/:follower_id
-                    await this.$axios.delete("/users/"+this.$route.params.id+"/followers/"+ localStorage.getItem('token'));
+                    await this.$axios.delete("/users/"+this.$route.params.id+"/followers/"+ sessionStorage.getItem('token'));
                     this.followerCnt -=1
                 }else{
                     // Put like: /users/:id/followers/:follower_id
-                    await this.$axios.put("/users/"+this.$route.params.id+"/followers/"+ localStorage.getItem('token'));
+                    await this.$axios.put("/users/"+this.$route.params.id+"/followers/"+ sessionStorage.getItem('token'));
                     this.followerCnt +=1
                 }
                 this.followStatus = !this.followStatus
@@ -97,11 +98,11 @@ export default {
             try{
                 if (this.banStatus){
                     // Delete ban: /users/:id/banned_users/:banned_id
-                    await this.$axios.delete("/users/"+localStorage.getItem('token')+"/banned_users/"+ this.$route.params.id);
+                    await this.$axios.delete("/users/"+sessionStorage.getItem('token')+"/banned_users/"+ this.$route.params.id);
                     this.loadInfo()
                 }else{
                     // Put ban: /users/:id/banned_users/:banned_id
-                    await this.$axios.put("/users/"+localStorage.getItem('token')+"/banned_users/"+ this.$route.params.id);
+                    await this.$axios.put("/users/"+sessionStorage.getItem('token')+"/banned_users/"+ this.$route.params.id);
                     this.followStatus = false
                 }
                 this.banStatus = !this.banStatus
@@ -136,7 +137,7 @@ export default {
 				this.followerCnt = response.data.followers != null ? response.data.followers.length : 0
 				this.followingCnt = response.data.following != null? response.data.following.length : 0
 				this.postCnt = response.data.posts != null ? response.data.posts.length : 0
-				this.followStatus = response.data.followers != null ? response.data.followers.find(obj => obj.user_id === localStorage.getItem('token')) : false
+				this.followStatus = response.data.followers != null ? response.data.followers.find(obj => obj.user_id === sessionStorage.getItem('token')) : false
                 this.photos = response.data.posts != null ? response.data.posts : []
                 this.followers = response.data.followers != null ? response.data.followers : []
                 this.following = response.data.following != null ? response.data.following : []

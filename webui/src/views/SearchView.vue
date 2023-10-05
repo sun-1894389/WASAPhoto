@@ -47,7 +47,7 @@ export default {
 
 	async mounted(){
 		// Check if the user is logged
-		if (!localStorage.getItem('token')){
+		if (!sessionStorage.getItem('token')){
 			this.$router.replace("/login")
 		}
 		await this.loadSearchedUsers()

@@ -38,7 +38,7 @@ export default {
 				return
 			}
 
-			const bearer = localStorage.getItem('token')
+			const bearer = sessionStorage.getItem('token')
 
 			try{
 				if (!this.liked){
@@ -80,7 +80,7 @@ export default {
 		}
 
 		if (this.likes != null){
-			this.liked = this.allLikes.some(obj => obj.user_id === localStorage.getItem('token'))
+			this.liked = this.allLikes.some(obj => obj.user_id === sessionStorage.getItem('token'))
 		}
 		if (this.comments != null){
 			this.allComments = this.comments

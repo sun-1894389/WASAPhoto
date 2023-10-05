@@ -8,7 +8,7 @@ export default {
   },
   methods:{
     logout(){
-      localStorage.removeItem('token')
+      sessionStorage.removeItem('token')
       this.$emit('logoutNavbar',false)
     },
     goBackHome(){
@@ -19,7 +19,7 @@ export default {
       this.textVar=""
     },
     myProfile(){
-      this.$emit('requestUpdateView',"/users/"+localStorage.getItem('token'))
+      this.$emit('requestUpdateView',"/users/"+sessionStorage.getItem('token'))
     },
     profileIconInactive(){
       this.iconProfile = "fa-regular"

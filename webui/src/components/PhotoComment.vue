@@ -22,7 +22,7 @@ export default {
     },
 
     mounted(){
-        this.user = localStorage.getItem('token')
+        this.user = sessionStorage.getItem('token')
     }
 
 }
