@@ -3,11 +3,10 @@ package api
 import (
 	"Wasa-Photo-1894389/service/api/reqcontext"
 	"encoding/json"
+	"github.com/julienschmidt/httprouter"
 	"net/http"
 	"os"
 	"path/filepath"
-
-	"github.com/julienschmidt/httprouter"
 )
 
 func (rt *_router) sessionHandler(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
