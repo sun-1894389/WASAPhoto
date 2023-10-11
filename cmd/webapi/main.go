@@ -24,6 +24,9 @@ executable during the build).
 package main
 
 import (
+	"Wasa-Photo-1894389/service/api"
+	"Wasa-Photo-1894389/service/database"
+	"Wasa-Photo-1894389/service/globaltime"
 	"context"
 	"database/sql"
 	"errors"
@@ -36,9 +39,6 @@ import (
 	"os"
 	"os/signal"
 	"syscall"
-	"Wasa-Photo-1894389/service/api"
-	"Wasa-Photo-1894389/service/database"
-	"Wasa-Photo-1894389/service/globaltime"
 )
 
 // main is the program entry point. The only purpose of this function is to call run() and set the exit code if there is
