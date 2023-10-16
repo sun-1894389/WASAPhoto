@@ -9,7 +9,7 @@ import (
 	"os"
 	"time"
 )
-
+// Questo codice serve per gestire la configurazione dell'applicazione API.
 // WebAPIConfiguration describes the web API configuration. This structure is automatically parsed by
 // loadConfiguration and values from flags, environment variable or configuration file will be loaded.
 type WebAPIConfiguration struct {

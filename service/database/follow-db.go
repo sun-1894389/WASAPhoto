@@ -1,8 +1,8 @@
 package database
 
-// Database function that retrieves the list of followers of a user
+// Database function che recupera la lista degli utenti che seguono l'utente specificato 
 func (db *appdbimpl) GetFollowers(requestinUser User) ([]User, error) {
-
+	// Utilizza una query SQL per selezionare tutti gli utenti che seguono l'utente specificato.
 	rows, err := db.c.Query("SELECT follower FROM followers WHERE followed = ?", requestinUser.IdUser)
 	if err != nil {
 		return nil, err
@@ -28,9 +28,9 @@ func (db *appdbimpl) GetFollowers(requestinUser User) ([]User, error) {
 	return followers, nil
 }
 
-// Database function that retrieves the list of users followed by the user
+// Database function che recupera la lista degli utenti seguiti dall'utente specificato (requestinUser).
 func (db *appdbimpl) GetFollowing(requestinUser User) ([]User, error) {
-
+	// Utilizza una query SQL per selezionare tutti gli utenti seguiti dall'utente specificato.
 	rows, err := db.c.Query("SELECT followed FROM followers WHERE follower = ?", requestinUser.IdUser)
 	if err != nil {
 		return nil, err
@@ -56,9 +56,9 @@ func (db *appdbimpl) GetFollowing(requestinUser User) ([]User, error) {
 	return following, nil
 }
 
-// Database function that adds a follower to a user
+// Database function che permette a un utente (follower) di seguire un altro utente (followed).
 func (db *appdbimpl) FollowUser(follower User, followed User) error {
-
+	// Utilizza una query SQL INSERT per aggiungere un record nella tabella followers, indicando che l'utente follower segue l'utente followed.
 	_, err := db.c.Exec("INSERT INTO followers (follower,followed) VALUES (?, ?)",
 		follower.IdUser, followed.IdUser)
 	if err != nil {
@@ -68,9 +68,10 @@ func (db *appdbimpl) FollowUser(follower User, followed User) error {
 	return nil
 }
 
-// Database function that removes a follower from a user
+// Database function che permette a un utente (follower) di smettere di seguire un altro utente (followed).
 func (db *appdbimpl) UnfollowUser(follower User, followed User) error {
-
+	// Utilizza una query SQL DELETE per rimuovere un record dalla tabella followers,
+	// indicando che l'utente follower non segue più l'utente followed.
 	_, err := db.c.Exec("DELETE FROM followers WHERE(follower = ? AND followed = ?)",
 		follower.IdUser, followed.IdUser)
 	if err != nil {

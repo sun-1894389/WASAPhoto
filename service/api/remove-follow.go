@@ -8,27 +8,29 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that removes a user from the follower list of another
+// Funzione per rimuovere il follow di un utente dalla lista di un'altro utente
 func (rt *_router) deleteFollow(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estraggo il token di autenticazione (Bearer token) dall'header "Authorization" della richiesta HTTP.
+    // Estraggo l'ID del vecchio follower e dell'ID del proprietario della foto dai parametri del percorso.
 	requestingUserId := extractBearer(r.Header.Get("Authorization"))
 	oldFollower := ps.ByName("follower_id")
 	photoOwnerId := ps.ByName("id")
 
-	// Check if the id of the follower in the path is the same of bearer (no impersonation)
+	// Controllo per assicurarmi che l'ID del follower nel percorso sia lo stesso del token Bearer.
 	valid := validateRequestingUser(oldFollower, requestingUserId)
 	if valid != 0 {
 		w.WriteHeader(valid)
 		return
 	}
 
-	// Users can't follow themselfes so the unfollow won't do anything
+	// Controllo per vedere se l'utente sta cercando di "unfollow" se stesso.(Se si,rispondo 204 e termino)
 	if photoOwnerId == requestingUserId {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	// Check if the requesting user wasn't banned by the photo owner
+	// Verifica se l'utente che effettua la richiesta è stato bannato dal proprietario della foto.
 	banned, err := rt.db.BannedUserCheck(
 		database.User{IdUser: requestingUserId},
 		database.User{IdUser: photoOwnerId})
@@ -38,12 +40,12 @@ func (rt *_router) deleteFollow(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 	if banned {
-		// User was banned, can't perform the follow action
+		// User was banned, can't perform the follow action(403)
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// Remove the follower in the db via db function
+	// Chiamata alla funzione UnfollowUser(follow-db) del database per rimuovere il follower.
 	err = rt.db.UnfollowUser(
 		User{IdUser: oldFollower}.ToDatabase(),
 		User{IdUser: photoOwnerId}.ToDatabase())

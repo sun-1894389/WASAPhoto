@@ -9,9 +9,10 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that retrives all the necessary infos of a profile
+// Funzione che ritrova tutte le info necessarie del profilo
 func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estraggo l'id dell'utente che fa la richiesta e l'id dell'utente richiesto
 	requestingUserId := extractBearer(r.Header.Get("Authorization"))
 	requestedUser := ps.ByName("id")
 
@@ -19,7 +20,8 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 	var following []database.User
 	var photos []database.Photo
 
-	// Check if the requesting user is banned by the requested profile owner
+	// Controlla se l'utente che effettua la richiesta è bannato dall'utente richiesto, utilizzando una funzione del database.
+	// Se l'utente che effettua la richiesta è bannato, la funzione restituisce un codice di stato HTTP 403 (Forbidden) e termina.
 	userBanned, err := rt.db.BannedUserCheck(User{IdUser: requestingUserId}.ToDatabase(),
 		User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
@@ -32,7 +34,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	// Check if the requested profile was banned by the requesting user. If it's true respond with partial content
+	// Controllo se il profilo richiesto è stato bannato dal richiedente. Se si rispondo StatusPartialContent
 	requestedProfileBanned, err := rt.db.BannedUserCheck(User{IdUser: requestedUser}.ToDatabase(),
 		User{IdUser: requestingUserId}.ToDatabase())
 	if err != nil {
@@ -45,6 +47,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Controllo se l'utente esiste
 	userExists, err := rt.db.CheckUser(User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("getUserProfile/db.CheckUser: error executing query")
@@ -56,6 +59,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Recupero la lista dei followers dell'utente richiesto
 	followers, err = rt.db.GetFollowers(User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("getUserProfile/db.GetFollowers: error executing query")
@@ -63,6 +67,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Recupero la lista dei utenti seguiti dall'utente richiesto
 	following, err = rt.db.GetFollowing(User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("getUserProfile/db.GetFollowing: error executing query")
@@ -70,6 +75,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Recupera la lista delle foto dell'utente richiesto dal database.
 	photos, err = rt.db.GetPhotosList(User{IdUser: requestingUserId}.ToDatabase(), User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("getUserProfile/db.GetPhotosList: error executing query")
@@ -77,6 +83,7 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Recupero il nickname dell'utente richiesto
 	nickname, err := rt.db.GetNickname(User{IdUser: requestedUser}.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("getUserProfile/db.GetNickname: error executing query")
@@ -84,6 +91,8 @@ func (rt *_router) getUserProfile(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
+	// Imposta il codice di stato della risposta HTTP come 200 (OK) e invia un oggetto
+	// JSON che rappresenta il profilo completo dell'utente richiesto come corpo della risposta.
 	w.WriteHeader(http.StatusOK)
 	_ = json.NewEncoder(w).Encode(CompleteProfile{
 		Name:      requestedUser,

@@ -1,10 +1,35 @@
 package api
 
+/*
+definisce un insieme di endpoint per un'API web utilizzando un router HTTP.
+Ogni endpoint è associato a un metodo HTTP specifico e a un "handler" che gestisce le richieste a quell'endpoint.
+Handler serve a configurare un router HTTP che sa come gestire diverse richieste HTTP a vari endpoint dell'API web,
+indirizzando ciascuna richiesta all'handler appropriato e assicurando che la logica dell'applicazione sia eseguita correttamente.
+    Ricezione della Richiesta:
+        Quando una richiesta HTTP arriva al server, il Handler determina quale funzione handler dovrebbe gestire la richiesta basata sull'URL e il metodo HTTP.
+    Utilizzo di wrap:
+        L'handler selezionato è "avvolto" dalla funzione wrap. La funzione wrap può eseguire del codice prima di chiamare
+		l'handler principale, come configurare il RequestContext o eseguire il logging.
+        wrap può anche eseguire del codice dopo che l'handler principale ha finito, come il logging aggiuntivo o la gestione degli errori.
+    Configurazione del RequestContext:
+        All'interno della funzione wrap, un RequestContext viene creato e configurato. Questo potrebbe includere la
+		generazione di un ID univoco per la richiesta e la configurazione di un logger per includere quell'ID nelle voci di log.
+    Chiamata dell'Handler Principale:
+        La funzione wrap chiama l'handler principale, passando la richiesta HTTP originale e il RequestContext configurato.
+    Elaborazione della Richiesta:
+        L'handler principale elabora la richiesta, utilizzando le informazioni nel RequestContext come necessario.
+		Ad esempio, potrebbe utilizzare il logger nel RequestContext per registrare messaggi di log che includono l'ID della richiesta.
+    Risposta:
+        L'handler principale genera una risposta HTTP e la restituisce al client attraverso il Handler.
+*/
+
 import (
 	"net/http"
 )
 
 // Handler returns an instance of httprouter.Router that handle APIs registered here
+// Handler restituisce un oggetto che implementa l'interfaccia http.Handler, che può essere utilizzato per gestire le richieste HTTP.
+
 func (rt *_router) Handler() http.Handler {
 
 	// Login enpoint

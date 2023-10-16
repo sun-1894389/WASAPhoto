@@ -25,6 +25,8 @@ This is an example on how to migrate the DB and connect to it:
 	}()
 
 Then you can initialize the AppDatabase and pass it to the api package.
+Questo codice serve come middleware tra l'applicazione WASAPhoto e il suo database,fornendo
+funzionalità per eseguire operazioni CRUD (Create, Read, Update, Delete) sul database in modo strutturato e organizzato.
 */
 package database
 
@@ -43,10 +45,11 @@ var ErrUserAutoLike = errors.New("users can't like their own photos")
 var ErrUserAutoFollow = errors.New("users can't follow themselfes")
 */
 
-// Constants
+// Constants che indica foto per home
 const PhotosPerUserHome = 3
 
-// AppDatabase is the high level interface for the DB
+// AppDatabase è l'interfaccia per i DB
+// L'interfaccia AppDatabase definisce un set di metodi che qualsiasi implementazione del database dovrebbe fornire.
 type AppDatabase interface {
 
 	// Creates a new user in the database. It returns an error
@@ -121,45 +124,52 @@ type AppDatabase interface {
 	Ping() error
 }
 
+// Questa struttura contiene un campo c che rappresenta la connessione al database.
 type appdbimpl struct {
 	c *sql.DB
 }
 
-// New returns a new instance of AppDatabase based on the SQLite connection `db`.
-// `db` is required - an error will be returned if `db` is `nil`.
+// Questa funzione crea e restituisce una nuova istanza di AppDatabase. Se il database non esiste, viene creato.
 func New(db *sql.DB) (AppDatabase, error) {
+	// non è stata fornita una connessione valida al database.
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
 
-	// Activate foreign keys for db
-
+	// Esegue una query SQL per attivare il supporto alle chiavi esterne in SQLite.
+	// Questo è importante per garantire l'integrità referenziale tra le tabelle.
 	_, errPramga := db.Exec(`PRAGMA foreign_keys= ON`)
 	if errPramga != nil {
 		return nil, fmt.Errorf("error setting pragmas: %w", errPramga)
 	}
 
-	// Check if table exists. If not, the database is empty, and we need to create the structure
+	// Esegue una query SQL per verificare se esiste una tabella chiamata 'users' nel database.
+	// Il risultato (il nome della tabella) viene memorizzato nella variabile tableName.
 	var tableName string
 	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='users';`).Scan(&tableName)
 	if errors.Is(err, sql.ErrNoRows) {
+		// Se la tabella 'users' non esiste, chiama la funzione createDatabase per creare tutte le tabelle necessarie nel database.
 		err = createDatabase(db)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure: %w", err)
 		}
 	}
-
+	// restituisce un'istanza dell'implementazione appdbimpl dell'interfaccia AppDatabase
 	return &appdbimpl{
 		c: db,
 	}, nil
 }
 
+// Questa funzione verifica se il database è disponibile o meno
 func (db *appdbimpl) Ping() error {
 	return db.c.Ping()
 }
 
-// Creates all the necessary sql tables for the WASAPhoto app.
+// funzione crea tutte le tabelle necessarie per l'applicazione WASAPhoto nel database. 
+// Utilizza una serie di stringhe SQL per definire le tabelle e le relazioni tra di esse.
 func createDatabase(db *sql.DB) error {
+	// Ogni stringa rappresenta una query SQL per creare una tabella specifica nel database.
+	// Le 6 stringhe comandi SQL per creare le tabelle users, photos, likes, comments, banned_users e followers se non esistono già.
 	tables := [6]string{
 		`CREATE TABLE IF NOT EXISTS users (
 			id_user VARCHAR(16) NOT NULL PRIMARY KEY,
@@ -201,9 +211,10 @@ func createDatabase(db *sql.DB) error {
 			);`,
 	}
 
-	// Iteration to create all the needed sql schemas
+	// Inizia un ciclo for che itera su ogni stringa nell'array tables,per eseguire ogni query SQL nell'array per creare le tabelle.
 	for i := 0; i < len(tables); i++ {
-
+		// Assegno la query SQL corrente dall'array tables alla variabile sqlStmt.
+		// utilizzo il metodo Exec,se la tabella specificata dalla query esiste già,la query non avrà effetto grazie al IF NOT EXISTS nelle stringhe SQL.
 		sqlStmt := tables[i]
 		_, err := db.Exec(sqlStmt)
 

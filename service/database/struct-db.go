@@ -3,7 +3,9 @@ package database
 import "time"
 
 /*
-// Photo structure for the database
+struct-db definisce diverse strutture dati che rappresentano entità nel database e come queste entità dovrebbero
+essere rappresentate in formato JSON quando vengono scambiate tra il server e il client.
+Photo structure for the database
 type Photo struct {
 	Comments int       // Number of comments of a photo
 	Likes    int       // Number of likes of a photo

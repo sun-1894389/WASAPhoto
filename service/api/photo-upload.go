@@ -17,26 +17,26 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that manages the upload of a photo
+// Funzione che gestisce l'upload di una foto
 func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
 	w.Header().Set("Content-Type", "application/json")
 	auth := extractBearer(r.Header.Get("Authorization"))
 
-	// Check the user's identity for the operation
+	// Verifica l'identità dell'utente che effettua la richiesta
 	valid := validateRequestingUser(ps.ByName("id"), auth)
 	if valid != 0 {
 		w.WriteHeader(valid)
 		return
 	}
 
-	// Initialize photo struct
+	// Inizializza una struttura Photo con l'ID dell'utente e la data corrente.
 	photo := Photo{
 		Owner: auth,
 		Date:  time.Now().UTC(),
 	}
 
-	// Create a copy of the body
+	// Legge il body della richiesta e verifica se ci sono errori durante la lettura.
 	data, err := io.ReadAll(r.Body)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("photo-upload: error reading body content")
@@ -44,10 +44,11 @@ func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	// After reading the body we won't be able to read it again. We'll reassign a "fresh" io.ReadCloser to the body
+	// Reimposta il body della richiesta in modo da poterlo leggere di nuovo in seguito
+	// Dopo aver letto il body bisogna riassegnare un io.ReadCloser per poterlo rileggere
 	r.Body = io.NopCloser(bytes.NewBuffer(data))
 
-	// Check if the body content is either a png or a jpeg image
+	// verifico se il contenuto del body è una immagine png o jpeg(in caso di errore:400 badrequest)
 	err = checkFormatPhoto(r.Body, io.NopCloser(bytes.NewBuffer(data)), ctx)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -57,10 +58,11 @@ func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	// Body has been read in the previous function so it's necessary to reassign a io.ReadCloser to it
+	// Reimposta nuovamente il corpo della richiesta per poterlo leggere di nuovo.
 	r.Body = io.NopCloser(bytes.NewBuffer(data))
 
-	// Generate a unique id for the photo
+	// Chiama una funzione del database per creare un record per la foto e ottenere un ID univoco per essa
+	// Se si verifica un errore, risponde con un codice di stato HTTP 500 (Internal Server Error)
 	photoIdInt, err := rt.db.CreatePhoto(photo.ToDatabase())
 	if err != nil {
 		ctx.Logger.WithError(err).Error("photo-upload: error executing db function call")
@@ -68,9 +70,10 @@ func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
+	//Converte l'ID della foto da int64 a string.
 	photoId := strconv.FormatInt(photoIdInt, 10)
 
-	// Create the user's folder locally to save his/her images
+	// Ottiene il percorso della cartella dove verrà salvata la foto dell'utente utilizzando la funzione definita sotto.
 	PhotoPath, err := getUserPhotoFolder(auth)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("photo-upload: error getting user's photo folder")
@@ -78,31 +81,27 @@ func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	// Create an empty file for storing the body content (image)
+	// Crea un nuovo file con l'ID della foto come nome nel percorso ottenuto.(per salvare il contenuto del body)
 	out, err := os.Create(filepath.Join(PhotoPath, photoId))
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		ctx.Logger.WithError(err).Error("photo-upload: error creating local photo file")
-		//  = json.NewEncoder(w).Encode(JSONErrorMsg{Message: INTERNAL_ERROR_MSG})
 		return
 	}
 
-	// Copy body content to the previously created file
+	// Copia il contenuto del corpo della richiesta nel file appena creato. 
 	_, err = io.Copy(out, r.Body)
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		ctx.Logger.WithError(err).Error("photo-upload: error copying body content into file photo")
-		// controllaerrore
-		// _ = json.NewEncoder(w).Encode(JSONErrorMsg{Message: INTERNAL_ERROR_MSG})
 		return
 	}
 
-	// Close the created file
+	// Chiude il file appena creato
 	out.Close()
 
+	// Invia una risposta con stato "Created" e un oggetto JSON che rappresenta la foto appena caricata.
 	w.WriteHeader(http.StatusCreated)
-	// controllaerrore
-	// _ = json.NewEncoder(w).Encode(PhotoId{IdPhoto: photoIdInt})
 	_ = json.NewEncoder(w).Encode(Photo{
 		Comments: nil,
 		Likes:    nil,
@@ -113,7 +112,7 @@ func (rt *_router) postPhoto(w http.ResponseWriter, r *http.Request, ps httprout
 
 }
 
-// Function checks if the format of the photo is png or jpeg. Returns the format extension and an error
+// Funzione per controllare se il formato della foto è png o jpeg.Ritorno l'estenzione del formato e un errore 
 func checkFormatPhoto(body io.ReadCloser, newReader io.ReadCloser, ctx reqcontext.RequestContext) error {
 
 	_, errJpg := jpeg.Decode(body)
@@ -129,7 +128,7 @@ func checkFormatPhoto(body io.ReadCloser, newReader io.ReadCloser, ctx reqcontex
 	return nil
 }
 
-// Function that returns the path of the photo folder for a certain user
+// Funzione che restituice il path del photo folder del'utente
 func getUserPhotoFolder(user_id string) (UserPhotoFoldrPath string, err error) {
 
 	// Path of the photo dir "./media/user_id/photos/"

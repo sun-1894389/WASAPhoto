@@ -12,22 +12,26 @@ import (
 // This function retrieves all the photos of the people that the user is following
 func (rt *_router) getHome(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// imposto il tipo di contenuto della risposta http in json
+	// estraggo l'id del'utente dal  token Bearer nell'header di autorizzazione della richiesta HTTP.
 	w.Header().Set("Content-Type", "application/json")
 	identifier := extractBearer(r.Header.Get("Authorization"))
 
-	// A user can only see his/her home
+	// Verifica se è l'utente stesso a vedere la propria home
 	valid := validateRequestingUser(ps.ByName("id"), identifier)
 	if valid != 0 {
 		w.WriteHeader(valid)
 		return
 	}
 
+	// Ottengo un elenco di utenti che l'utente sta seguendo dal database.
 	followers, err := rt.db.GetFollowing(User{IdUser: identifier}.ToDatabase())
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 
+	// Itera sugli utenti seguiti e recupera le loro foto. Aggiungendo le foto a un elenco.
 	var photos []database.Photo
 	for _, follower := range followers {
 
@@ -48,8 +52,8 @@ func (rt *_router) getHome(w http.ResponseWriter, r *http.Request, ps httprouter
 
 	}
 
+	// Imposta lo stato della risposta HTTP come 200 OK. Codifica l'elenco di foto in formato JSON e lo invia come corpo della risposta HTTP.
 	w.WriteHeader(http.StatusOK)
 
-	// Send the output to the user. Instead of giving null for no matches return and empty slice of photos. ( ontrollaerrore)
 	_ = json.NewEncoder(w).Encode(photos)
 }

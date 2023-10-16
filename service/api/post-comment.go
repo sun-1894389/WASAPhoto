@@ -9,19 +9,22 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that adds a comment to a photo and sends a response containing the unique id of the created comment
+// funzione che gestisce l'aggiunta di un commento a una foto e invia una risposta contenente l'ID univoco del commento creato.
 func (rt *_router) postComment(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	//Imposta l'intestazione "Content-Type" della risposta HTTP su "application/json", indicando che la risposta sarà in formato JSON.
+	//Estrae l'ID del proprietario della foto e l'ID dell'utente che sta effettuando la richiesta dalle intestazioni della richiesta HTTP.
 	w.Header().Set("Content-Type", "application/json")
 	photoOwnerId := ps.ByName("id")
 	requestingUserId := extractBearer(r.Header.Get("Authorization"))
 
+	//Controlla se l'utente che effettua la richiesta non è autenticato.(errore:403)
 	if isNotLogged(requestingUserId) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// Check if the requesting user wasn't banned by the photo owner
+	// Controlla se l'utente che effettua la richiesta è stato bannato dal proprietario della foto.
 	banned, err := rt.db.BannedUserCheck(
 		User{IdUser: requestingUserId}.ToDatabase(),
 		User{IdUser: photoOwnerId}.ToDatabase())
@@ -31,12 +34,12 @@ func (rt *_router) postComment(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	if banned {
-		// User was banned by owner, can't post the comment
+		// l'utente bannato non puo commentare
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// Copy body content (comment sent by user) into comment (struct)
+	// Copio il body content(comment mandato dal'user) nel comment(Struct)
 	var comment Comment
 	err = json.NewDecoder(r.Body).Decode(&comment)
 	if err != nil {
@@ -45,14 +48,14 @@ func (rt *_router) postComment(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Check if the comment has a valid lenght (<=30)
+	// Controllo la lunghezza del comment(<=30)
 	if len(comment.Comment) > 30 {
 		w.WriteHeader(http.StatusBadRequest)
 		ctx.Logger.WithError(err).Error("post-comment: comment longer than 30 characters")
 		return
 	}
 
-	// Convert the photo identifier from string to int64
+	// Convertisco l'id della foto da string a int 64 bit
 	photo_id_64, err := strconv.ParseInt(ps.ByName("photo_id"), 10, 64)
 	if err != nil {
 		w.WriteHeader(http.StatusBadRequest)
@@ -60,7 +63,7 @@ func (rt *_router) postComment(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Function call to db for comment creation
+	// Chiama una funzione del database per creare il commento.
 	commentId, err := rt.db.CommentPhoto(
 		PhotoId{IdPhoto: photo_id_64}.ToDatabase(),
 		User{IdUser: requestingUserId}.ToDatabase(),
@@ -71,9 +74,10 @@ func (rt *_router) postComment(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
+	// Imposta lo stato della risposta su "Created".
 	w.WriteHeader(http.StatusCreated)
 
-	// The response body will contain the unique id of the comment
+	// Codifica l'ID univoco del commento creato in formato JSON e lo invia come corpo della risposta.
 	err = json.NewEncoder(w).Encode(CommentId{IdComment: commentId})
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

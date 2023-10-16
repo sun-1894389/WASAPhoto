@@ -8,26 +8,27 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that adds a user to the followers list of another
+// Funzione per mettere nella lista dei follow di un utente il follow di un'altro utente
 func (rt *_router) putFollow(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estrae l'ID dell'utente da seguire e l'ID dell'utente che sta effettuando 
+	// la richiesta dalle intestazioni e dai parametri della richiesta HTTP.
 	userToFollowId := ps.ByName("id")
 	requestingUserId := extractBearer(r.Header.Get("Authorization"))
 
-	// users can't follow themselves
+	// un utente non si puo followare da solo (error 404)
 	if requestingUserId == userToFollowId {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 
-	// Check if the id of the follower in the request is the same of the bearer and the path parameter
+	// Controlla se l'ID del follower nella richiesta corrisponde all'ID dell'utente che effettua la richiesta.
 	if ps.ByName("follower_id") != requestingUserId {
 		w.WriteHeader(http.StatusBadRequest)
-		// ctx.Logger.WithError(errors.New("id in request and authentication not consistent")).Error("put-follow: users trying to identify as someone else")
 		return
 	}
 
-	// Check if the requesting user wasn't banned by the photo owner
+	// Controllo se chi mette follow non è stato bannato dal followato
 	banned, err := rt.db.BannedUserCheck(
 		database.User{IdUser: requestingUserId},
 		database.User{IdUser: userToFollowId})
@@ -42,7 +43,7 @@ func (rt *_router) putFollow(w http.ResponseWriter, r *http.Request, ps httprout
 		return
 	}
 
-	// Add the new follower in the db via db function
+	// Viene aggiunto il follower usando la funzione dal database
 	err = rt.db.FollowUser(
 		User{IdUser: requestingUserId}.ToDatabase(),
 		User{IdUser: userToFollowId}.ToDatabase())

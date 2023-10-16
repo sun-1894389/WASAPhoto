@@ -8,27 +8,28 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that retrives all the users matching the query parameter and sends the response containing all the matches
+// Funzione che recupera tutti gli utenti corrispondenti al parametro di query e invia la risposta contenente tutte le corrispondenze.
 func (rt *_router) getUsersQuery(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Imposta l'intestazione della risposta per indicare che il tipo di contenuto sarà JSON.
 	w.Header().Set("Content-Type", "application/json")
 
-	// Get the user identifier (from Bearer)
+	// Estraggo l'identificatore dell'utente dal token Bearer nella richiesta.
 	identifier := extractBearer(r.Header.Get("Authorization"))
 
-	// If the user is not logged in then respond with a 403 http status
+	// Se non sono loggato rispondo con error:403
 	if identifier == "" {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// Extract the query parameter from the URL
+	// Estraggo il parametro di query "id" dall'URL della richiesta.
 	identificator := r.URL.Query().Get("id")
 
-	// Search the user in the database (with the query parameter as a filter)
+	// Ricerca dell'utente nel database utilizzando il parametro di query come filtro.
 	res, err := rt.db.SearchUser(User{IdUser: identifier}.ToDatabase(), User{IdUser: identificator}.ToDatabase())
 	if err != nil {
-		// In this case, there's an error coming from the database. Return an empty json
+		// C'è stato un errore, Return an empty json(error 500)
 		w.WriteHeader(http.StatusInternalServerError)
 		ctx.Logger.WithError(err).Error("Database has encountered an error")
 		// controllaerrore
@@ -36,14 +37,14 @@ func (rt *_router) getUsersQuery(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
+	// Imposta un codice di stato 200 OK per la risposta, indicando che tutto è andato bene fino a questo punto.
 	w.WriteHeader(http.StatusOK)
 
-	// Send the output to the user. Instead of giving null for no matches return and empty slice of Users
+	// Invia l'output all'utente. Se non ci sono corrispondenze, invece di restituire un valore null,
+	// viene restituito un array JSON vuoto. Altrimenti, restituisce l'array di utenti corrispondenti.
 	if len(res) == 0 {
-		// controllaerrore
 		_ = json.NewEncoder(w).Encode([]User{})
 		return
 	}
-	// controllaerrore
 	_ = json.NewEncoder(w).Encode(res)
 }

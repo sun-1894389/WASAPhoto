@@ -1,8 +1,9 @@
 package database
 
-// Database function that retrieves the list of users that liked a photo
+// Database function che recupera la lista degli utenti che hanno messo "mi piace" a una determinata foto.
 func (db *appdbimpl) GetLikesList(requestingUser User, requestedUser User, photo PhotoId) ([]CompleteUser, error) {
-
+	// La query SQL seleziona tutti gli utenti che hanno messo "mi piace" alla foto specificata, escludendo gli utenti
+	// che hanno bannato l'utente che fa la richiesta (requestingUser) o sono stati bannati da lui.
 	rows, err := db.c.Query("SELECT id_user FROM likes WHERE id_photo = ? AND id_user NOT IN (SELECT banned FROM banned_users WHERE banner = ? OR banner = ?) "+
 		"AND id_user NOT IN (SELECT banner FROM banned_users WHERE banned = ?)",
 		photo.IdPhoto, requestingUser.IdUser, requestedUser.IdUser, requestingUser.IdUser)
@@ -38,9 +39,9 @@ func (db *appdbimpl) GetLikesList(requestingUser User, requestedUser User, photo
 	return likes, nil
 }
 
-// Database function that adds a like of a user to a photo
+// Database function che  permette a un utente di mettere "mi piace" a una foto.
 func (db *appdbimpl) LikePhoto(p PhotoId, u User) error {
-
+	// Utilizza una query SQL INSERT per aggiungere un record nella tabella likes, indicando che l'utente u ha messo "mi piace" alla foto p.
 	_, err := db.c.Exec("INSERT INTO likes (id_photo,id_user) VALUES (?, ?)", p.IdPhoto, u.IdUser)
 	if err != nil {
 		return err
@@ -49,9 +50,9 @@ func (db *appdbimpl) LikePhoto(p PhotoId, u User) error {
 	return nil
 }
 
-// Database function that removes a like of a user from a photo
+// Database function che permette a un utente (u) di rimuovere il "mi piace" da una foto (p).
 func (db *appdbimpl) UnlikePhoto(p PhotoId, u User) error {
-
+	// Utilizza una query SQL DELETE per rimuovere un record dalla tabella likes, indicando che l'utente u ha rimosso il "mi piace" dalla foto p.
 	_, err := db.c.Exec("DELETE FROM likes WHERE(id_photo = ? AND id_user = ?)", p.IdPhoto, u.IdUser)
 	if err != nil {
 		return err

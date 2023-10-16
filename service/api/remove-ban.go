@@ -7,28 +7,30 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that removes a user from the banned list of another
+// Funzione che rimuove un user dalla lista dei banned di un altro user
 func (rt *_router) deleteBan(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estraggo il token di autenticazione dall'header "Authorization" della richiesta HTTP,
+	// l'ID dell'utente e dell'utente da "sbandire"
 	bearerToken := extractBearer(r.Header.Get("Authorization"))
 	pathId := ps.ByName("id")
 	userToUnban := ps.ByName("banned_id")
 
-	// Check the user's identity for the operation
+	// Verifica dell'identità dell'utente che effettua la richiesta.
 	valid := validateRequestingUser(pathId, bearerToken)
 	if valid != 0 {
 		w.WriteHeader(valid)
 		return
 	}
 
-	// Users can't ban themselfes so this action shouldn't be possible. In order to avoid
-	// making any useless operation terminate here the execution of the function
+	// Controllo per assicurarsi che un utente non stia cercando di "sbandire" se stesso.(error:204)
+	// (Un utente non può bannarsi da solo)
 	if userToUnban == bearerToken {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	// Remove the follower in the db via db function
+	// Chiamo la funzione UnbanUser dal database per rimuovere l'utente dalla lista dei banned.
 	err := rt.db.UnbanUser(
 		User{IdUser: pathId}.ToDatabase(),
 		User{IdUser: userToUnban}.ToDatabase())

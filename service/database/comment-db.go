@@ -1,8 +1,9 @@
 package database
 
-// Database function that retrieves the list of comments of a photo (minus the comments from users that banned the requesting user)
+// Questa funzione recupera la lista completa dei commenti di una foto, escludendo i commenti degli utenti che hanno bannato l'utente richiedente.
 func (db *appdbimpl) GetCompleteCommentsList(requestingUser User, requestedUser User, photo PhotoId) ([]CompleteComment, error) {
-
+	// Utilizza una query SQL per selezionare tutti i commenti della foto specificata,
+	// escludendo quelli degli utenti che hanno bannato l'utente richiedente o l'utente richiesto.
 	rows, err := db.c.Query("SELECT * FROM comments WHERE id_photo = ? AND id_user NOT IN (SELECT banned FROM banned_users WHERE banner = ? OR banner = ?) "+
 		"AND id_user NOT IN (SELECT banner FROM banned_users WHERE banned = ?)",
 		photo.IdPhoto, requestingUser.IdUser, requestedUser.IdUser, requestingUser.IdUser)
@@ -39,24 +40,9 @@ func (db *appdbimpl) GetCompleteCommentsList(requestingUser User, requestedUser 
 	return comments, nil
 }
 
-/*
-// Database function that gets the number of comments of a photo
-func (db *appdbimpl) GetCommentsLen(p PhotoId) (int, error) {
-
-	var comments int
-	err := db.c.QueryRow("SELECT COUNT(*) FROM comments WHERE (id_photo = ?)",
-		p.IdPhoto).Scan(&comments)
-	if err != nil {
-		return 0, err
-	}
-
-	return comments, nil
-}
-*/
-
-// Database function that adds a comment of a user to a photo
+// Database function per aggiungere un commento di un user ad una foto
 func (db *appdbimpl) CommentPhoto(p PhotoId, u User, c Comment) (int64, error) {
-
+	//Utilizza una query SQL INSERT per inserire il commento nel database.
 	res, err := db.c.Exec("INSERT INTO comments (id_photo,id_user,comment) VALUES (?, ?, ?)",
 		p.IdPhoto, u.IdUser, c.Comment)
 	if err != nil {
@@ -69,7 +55,7 @@ func (db *appdbimpl) CommentPhoto(p PhotoId, u User, c Comment) (int64, error) {
 		// Error getting id returned by last db operation (commentId)
 		return -1, err
 	}
-
+	// Restituisce l'ID del commento appena inserito.
 	return commentId, nil
 }
 
@@ -81,9 +67,9 @@ Similarly for the id_photo part, except this time we want to make sure that if t
 is not valid but that comment exists for the given user, it won't be deleted.
 */
 
-// Database function that removes a comment of a user from a photo
+// Database function che rimuove il commento di un utente dalla foto
 func (db *appdbimpl) UncommentPhoto(p PhotoId, u User, c CommentId) error {
-
+	// Utilizza una query SQL DELETE per rimuovere il commento specificato dal database.
 	_, err := db.c.Exec("DELETE FROM comments WHERE (id_photo = ? AND id_user = ? AND id_comment = ?)",
 		p.IdPhoto, u.IdUser, c.IdComment)
 	if err != nil {
@@ -93,9 +79,11 @@ func (db *appdbimpl) UncommentPhoto(p PhotoId, u User, c CommentId) error {
 	return nil
 }
 
-// Database function that removes a comment of a user from a photo ( by post author)
+// data base function permette all'autore di una foto di rimuovere un commento dalla sua foto.
+// A differenza della funzione UncommentPhoto, questa funzione non richiede l'ID dell'utente,
+// poiché si presume che l'autore della foto abbia il diritto di rimuovere qualsiasi commento dalla sua foto.
 func (db *appdbimpl) UncommentPhotoAuthor(p PhotoId, c CommentId) error {
-
+	// Utilizza una query SQL DELETE per rimuovere il commento specificato dal database.
 	_, err := db.c.Exec("DELETE FROM comments WHERE (id_photo = ? AND id_comment = ?)",
 		p.IdPhoto, c.IdComment)
 	if err != nil {

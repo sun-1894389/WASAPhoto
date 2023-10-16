@@ -1,8 +1,9 @@
 package database
 
-// Database function that gets the stream of a user (photos of people that are followed by the latter)
+// Database function che recupera lo "stream" di un utente, che consiste nelle foto delle persone seguite dall'utente.
 func (db *appdbimpl) GetStream(user User) ([]Photo, error) {
-
+	// Esegue una query SQL SELECT per selezionare tutte le foto degli utenti seguiti
+	// dall'utente specificato e le ordina in base alla data di caricamento in ordine decrescente.
 	rows, err := db.c.Query(`SELECT * FROM photos WHERE id_user IN (SELECT followed FROM followers WHERE follower = ?) ORDER BY date DESC`,
 		user.IdUser)
 	if err != nil {
@@ -25,13 +26,13 @@ func (db *appdbimpl) GetStream(user User) ([]Photo, error) {
 	if rows.Err() != nil {
 		return nil, err
 	}
-
+	// Restituisce una slice di Photo che rappresenta lo stream dell'utente.
 	return res, nil
 }
 
-// Database function that adds a new user in the database upon registration
+// Database function che aggiunge un nuovo utente al database durante la registrazione.
 func (db *appdbimpl) CreateUser(u User) error {
-
+	// Esegue una query SQL per inserire un nuovo utente nel database con un ID utente e un soprannome 
 	_, err := db.c.Exec("INSERT INTO users (id_user,nickname) VALUES (?, ?)",
 		u.IdUser, u.IdUser)
 
@@ -42,9 +43,9 @@ func (db *appdbimpl) CreateUser(u User) error {
 	return nil
 }
 
-// [EXTRA] Database function that checks if a user exists
+// Database function controlla se un utente esiste nel database.
 func (db *appdbimpl) CheckUser(targetUser User) (bool, error) {
-
+	//  Esegue una query SQL per contare il numero di righe nella tabella degli utenti che corrispondono all'ID utente specificato.
 	var cnt int
 	err := db.c.QueryRow("SELECT COUNT(*) FROM users WHERE id_user = ?",
 		targetUser.IdUser).Scan(&cnt)

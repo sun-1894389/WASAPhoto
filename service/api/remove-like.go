@@ -8,26 +8,26 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// Function that removes a like from a photo
+// Funzione per rimuovere il like da una foto
 func (rt *_router) deleteLike(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estraggo l'ID dell'autore della foto e dell'ID dell'utente che effettua la richiesta dalla richiesta HTTP.
 	photoAuthor := ps.ByName("id")
 	requestingUserId := extractBearer(r.Header.Get("Authorization"))
 
-	// Check if the user is logged
+	// Controllo se l'user è loggato(se non lo è error:403)
 	if isNotLogged(requestingUserId) {
 		w.WriteHeader(http.StatusForbidden)
 		return
 	}
 
-	// User trying to unlike his/her photo. Since it's not possibile to like it in the first
-	// place it's useless. Return to avoid doing useless operations
+	// Controllo se è l'utente stesso a volersi togliere like(ho messo che non è possibile farlo)
 	if photoAuthor == requestingUserId {
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
 
-	// Check if the requesting user wasn't banned by the photo owner
+	// Controllo che il richiedente non è stato bannato dal photo owner
 	banned, err := rt.db.BannedUserCheck(
 		User{IdUser: requestingUserId}.ToDatabase(),
 		User{IdUser: photoAuthor}.ToDatabase())
@@ -42,6 +42,7 @@ func (rt *_router) deleteLike(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
+	// Conversione dell'ID della foto da stringa a int64.
 	photoIdInt, err := strconv.ParseInt(ps.ByName("photo_id"), 10, 64)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("remove-like/ParseInt: error converting photo_id to int64")
@@ -49,7 +50,7 @@ func (rt *_router) deleteLike(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	// Insert the like in the db via db function
+	// Chiamata della funzione UnlikePhoto del database(like-db) per rimuovere il "like".
 	err = rt.db.UnlikePhoto(
 		PhotoId{IdPhoto: photoIdInt}.ToDatabase(),
 		User{IdUser: requestingUserId}.ToDatabase())

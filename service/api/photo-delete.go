@@ -13,17 +13,19 @@ import (
 // Function that deletes a photo (this includes comments and likes)
 func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Estraggo il token di autenticazione bearer dall'header "Authorization"
+	// della richiesta HTTP e l'ID della foto dal parametro del percorso.
 	bearerAuth := extractBearer(r.Header.Get("Authorization"))
 	photoIdStr := ps.ByName("photo_id")
 
-	// Check the user's identity for the operation
+	// Verifica se l'utente che effettua la richiesta è valido
 	valid := validateRequestingUser(ps.ByName("id"), bearerAuth)
 	if valid != 0 {
 		w.WriteHeader(valid)
 		return
 	}
 
-	// Convert the photo id from string to int64
+	// Converte l'ID della foto da una stringa a un intero a 64 bit
 	photoInt, err := strconv.ParseInt(photoIdStr, 10, 64)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("photo-delete/ParseInt: error converting photoId to int")
@@ -31,7 +33,7 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Call to the db function to remove the photo
+	// Chiama una funzione per rimuovere la foto dal database.
 	err = rt.db.RemovePhoto(
 		User{IdUser: bearerAuth}.ToDatabase(),
 		PhotoId{IdPhoto: photoInt}.ToDatabase())
@@ -41,7 +43,7 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Get the folder of the file that has to be eliminated
+	// Ottiene il percorso della cartella che contiene la foto da eliminare.
 	pathPhoto, err := getUserPhotoFolder(bearerAuth)
 	if err != nil {
 		ctx.Logger.WithError(err).Error("photo-delete/getUserPhotoFolder: error with directories")
@@ -49,7 +51,7 @@ func (rt *_router) deletePhoto(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Remove the file from the user's photos folder
+	// Rimuovo il file dalla cartella delle foto
 	err = os.Remove(filepath.Join(pathPhoto, photoIdStr))
 	if err != nil {
 		// Error occurs if the file doesn't exist, but for idempotency an error won't be raised

@@ -1,4 +1,5 @@
 //go:build webui
+//
 
 package main
 
@@ -9,6 +10,9 @@ import (
 	"net/http"
 	"strings"
 )
+
+// questa funzione configura l'applicazione per servire l'interfaccia utente web da una directory embedded
+// quando l'URL richiesto inizia con /dashboard/, e per gestire tutte le altre richieste.
 
 func registerWebUI(hdl http.Handler) (http.Handler, error) {
 	distDirectory, err := fs.Sub(webui.Dist, "dist")

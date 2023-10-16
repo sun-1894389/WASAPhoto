@@ -1,4 +1,10 @@
 /*
+Questo modulo:
+Fornisce un modo per creare e configurare un router HTTP per un'API web.
+Utilizza httprouter per gestire il routing delle richieste HTTP.
+Utilizza logrus per il logging.
+Si aspetta di interagire con un database attraverso l'interfaccia database.AppDatabase.
+Permette di creare un router HTTP configurato passando un'istanza di Config alla funzione New.
 Package api exposes the main API engine. All HTTP APIs are handled here - so-called "business logic" should be here, or
 in a dedicated package (if that logic is complex enough).
 
@@ -46,10 +52,10 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// Photo media folder
+// Photo media folder,indica un percorso dove vengono memorizzate delle foto.
 var photoFolder = filepath.Join("/tmp", "media")
 
-// Config is used to provide dependencies and configuration to the New function.
+// è una struct utilizzata per passare le configurazioni e le dipendenze alla funzione New.
 type Config struct {
 	// Logger where log entries are sent
 	Logger logrus.FieldLogger
@@ -68,6 +74,9 @@ type Router interface {
 }
 
 // New returns a new Router instance
+// New è una funzione che accetta un parametro cfg di tipo Config e restituisce un'istanza di Router e un error.
+// Crea un nuovo router HTTP e lo configura in base ai parametri forniti.
+// Controlla se le configurazioni fornite sono valide e, in caso contrario, restituisce un errore.
 func New(cfg Config) (Router, error) {
 	// Check if the configuration is correct
 	if cfg.Logger == nil {
@@ -89,7 +98,7 @@ func New(cfg Config) (Router, error) {
 		db:         cfg.Database,
 	}, nil
 }
-
+// _router è una struct che implementa l'interfaccia Router e contiene un router HTTP, un logger, e un'istanza del database.
 type _router struct {
 	router *httprouter.Router
 

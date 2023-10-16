@@ -5,7 +5,7 @@ import (
 
 	"net/http"
 )
-
+// applica una politica CORS alla richiesta http
 // applyCORSHandler applies a CORS policy to the router. CORS stands for Cross-Origin Resource Sharing: it's a security
 // feature present in web browsers that blocks JavaScript requests going across different domains if not specified in a
 // policy. This function sends the policy of this API server.
