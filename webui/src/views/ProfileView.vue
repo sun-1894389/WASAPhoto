@@ -1,5 +1,7 @@
 <script>
+// rappresenta il profilo di un utente 
 export default {
+    // Variabili per gestire errori
 	data: function() {
 		return {
 			errormsg: null,
@@ -22,7 +24,7 @@ export default {
             followers: [],
 		}
 	},
-
+    // Monitora i cambiamenti nell'ID dell'utente nel percorso e ricarica le informazioni del profilo se cambia.
     watch:{
         currentPath(newid,oldid){
             if (newid !== oldid){
@@ -32,12 +34,12 @@ export default {
     },
 
 	computed:{
-
+        // Ottiene l'ID dell'utente dal percorso corrente.
         currentPath(){
             return this.$route.params.id
         },
         
-
+        // Controlla se l'utente visualizzato è lo stesso che ha effettuato l'accesso.
 		sameUser(){
 			return this.$route.params.id === sessionStorage.getItem('token')
 		},
@@ -155,7 +157,7 @@ export default {
 			this.photos = this.photos.filter(item => item.photo_id !== photo_id)
 		},
 	},
-
+    // Carica le informazioni del profilo quando il componente viene montato.
 	async mounted(){
 		await this.loadInfo()
 	},

@@ -1,4 +1,5 @@
 <script>
+// view per la pagina di impostazioni di un utente
 export default {
 	data: function () {
 		return {
@@ -8,6 +9,8 @@ export default {
 	},
 
 	methods:{
+		// funzione per modificare il nickname dell'utente.Se la richiesta ha successo, 
+		// il campo nickname viene modificato. In caso di errore, viene impostato il messaggio di errore.
 		async modifyNickname(){
 			try{
 				// Nickname put: /users/:id

@@ -1,4 +1,5 @@
 <script>
+// Home view rappresenta la vista della pagina home di un utente.
 export default {
 	data: function () {
 		return {

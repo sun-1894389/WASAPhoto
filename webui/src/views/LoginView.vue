@@ -1,4 +1,5 @@
 <script>
+// Rappresenta e gestisce la pagina di login
 export default {
 	data: function() {
 		return {
@@ -9,6 +10,7 @@ export default {
 	},
 	methods: {
 		async login() {
+			// Effettua una richiesta POST all'endpoint "/session" con l'identificatore dell'utente.
 			// this.loading = true;
 			this.errormsg = null;
 			try {
@@ -16,9 +18,11 @@ export default {
 				let response = await this.$axios.post("/session",{
 					user_id: this.identifier.trim()
 				});
-
+				// Se la richiesta ha esito positivo, memorizza l'ID utente nel sessionStorage come 'token'.
 				sessionStorage.setItem('token',response.data.user_id);
+				// Reindirizza l'utente alla pagina "/home".
 				this.$router.replace("/home")
+				// informa che l'utente ha effettuato l'accesso
 				this.$emit('updatedLoggedChild',true)
 				
 			} catch (e) {

@@ -1,21 +1,26 @@
 <script>
+// view per ricerca per gli utenti 
 export default {
 	data: function() {
 		return {
+			// lista di utenti che corrispondono ai criteri di ricerca.
 			users: [],
 			errormsg: null,
 		}
 	},
 
+	// Il valore di ricerca inserito dall'utente.
 	props:['searchValue'],
 
 	watch:{
+		// Ogni volta che il valore di ricerca cambia, viene chiamata la funzione 
 		searchValue: function(){
 			this.loadSearchedUsers()
 		},
 	},
 
 	methods:{
+		//  Carica gli utenti che corrispondono ai criteri di ricerca.
 		async loadSearchedUsers(){
 			this.errormsg = null;
 			if (
@@ -39,7 +44,7 @@ export default {
 				this.errormsg = e.toString();
 			}
 		},
-
+		// Reindirizza l'utente al profilo dell'utente selezionato.
 		goToProfile(profileId){
 			this.$router.replace("/users/"+profileId)
 		}

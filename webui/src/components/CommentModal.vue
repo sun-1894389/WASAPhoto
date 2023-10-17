@@ -1,3 +1,8 @@
+<!-- 
+	CommentModal rappresenta una finestra modale che permette agli utenti di visualizzare 
+	i commenti di una foto e di aggiungere nuovi commenti. Gli utenti possono anche eliminare i propri commenti. 
+	Quando un commento viene aggiunto o eliminato, il componente notifica il componente padre attraverso eventi personalizzati.
+ -->
 <script>
 export default {	
 	data(){

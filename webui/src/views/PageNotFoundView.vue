@@ -1,4 +1,5 @@
 <script>
+// View di quando una pagina non viene trovata
 export default {
 	data: function() {
 		return {

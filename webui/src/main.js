@@ -1,3 +1,6 @@
+// script che inizializza il frontend Vue e configura le sue parti principali
+
+// importo metodi essenziali per creare un'applicazione Vue e per creare un oggetto reattivo.
 import {
     createApp,
     reactive
@@ -18,9 +21,13 @@ import PhotoComment from './components/PhotoComment.vue'
 import './assets/dashboard.css'
 import './assets/main.css'
 
+// Crea un'istanza dell'applicazione Vue utilizzando il componente principale App.
 const app = createApp(App)
+
+// Aggiunge l'istanza di Axios all'applicazione come una proprietà globale,permettendo a qualsiasi componente di accedere ad Axios tramite this.$axios.
 app.config.globalProperties.$axios = axios;
 
+// registro i vari component
 app.component("ErrorMsg", ErrorMsg);
 app.component("LoadingSpinner", LoadingSpinner);
 app.component("Navbar", Navbar);
@@ -30,5 +37,9 @@ app.component("PageNotFound", PageNotFound);
 app.component("LikeModal", LikeModal);
 app.component("CommentModal", CommentModal);
 app.component("PhotoComment", PhotoComment);
+
+// Aggiunge il router all'applicazione, permettendo la navigazione tra le diverse viste.
 app.use(router)
+
+// Monta l'applicazione Vue sull'elemento con l'ID app
 app.mount('#app')
